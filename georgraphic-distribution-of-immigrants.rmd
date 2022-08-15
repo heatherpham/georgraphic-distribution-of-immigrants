@@ -1,0 +1,119 @@
+---
+title: "Geographic Distribution of Immigrants"
+author: "Heather Pham"
+date: '2022-07-21'
+output: html_document
+---
+
+```{r Setup, include=FALSE}
+# Clear environment
+rm(list = ls())
+
+# Set knit options
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+library(magrittr)
+library(readstata13)
+library(tidyverse)
+```
+
+# Data
+
+```{r Import data}
+# # Import data
+# data <- read.dta13("Census_2016_Individual_PUMF.dta")
+# 
+# # Check
+# head(data)
+# glimpse(data)
+# 
+# # Create new dataframe with variables of interest
+# immigrant <- data %>%
+#   select(immstat, pob, pr)
+# 
+# # Save as new dataset
+# save.dta13(immigrant, "D:/Documents/Projects/Geographic Distribution of Immigrants in Canada/georgraphic-distribution-of-immigrants/immigrant.dta")
+
+# Import data
+immigrant <- read.dta13("immigrant.dta")
+
+# Look at dataframe
+head(immigrant)
+apply(immigrant, 2, table)
+```
+
+```{r Data cleaning}
+# Rename variables
+immigrant %<>% 
+  rename(immigrant_status = immstat,
+         place_of_birth = pob,
+         place_of_residence = pr)
+
+# Filter for respondents who are immigrants and are not born in Canada
+immigrant %<>%
+  filter(immigrant_status == "immigrants",
+         place_of_birth != "canada")
+
+# Check work
+apply(immigrant, 2, table)
+
+# Clean place_of birth variable
+immigrant %<>% 
+  mutate(place_of_birth = as.character(place_of_birth),
+         place_of_birth = str_to_title(place_of_birth), # Change to title case
+         place_of_birth = ifelse(place_of_birth == "Not Available", NA_character_, place_of_birth)) %>% 
+  filter(!is.na(place_of_birth))
+
+# Clean place of residence variable
+immigrant %<>% 
+  mutate(place_of_residence = str_to_title(place_of_residence)) 
+
+# Create variable continent
+immigrant %<>% 
+  mutate(continent_of_birth = case_when(
+    place_of_birth == "Eastern Africa" | place_of_birth == "Northern Africa" | place_of_birth == "Other Africa" ~ "Africa",
+    place_of_birth == "Central America" | place_of_birth == "United States" | place_of_birth == "Jamaica" | place_of_birth == "Other Caribbean And Bermuda" ~ "North America",
+    place_of_birth == "China" | place_of_birth == "Hong Kong" | place_of_birth == "India" | place_of_birth == "Iran" | place_of_birth == "Other Eastern Asia" | place_of_birth == "Other Southeast Asia" | place_of_birth == "Other Southern Asia" | place_of_birth == "Other West Central Asia And The Middle East" | place_of_birth == "Pakistan" | place_of_birth == "Philippines" | place_of_birth == "South Korea" | place_of_birth == "Sri Lanka" | place_of_birth == "Viet Nam" ~ "Asia",
+    place_of_birth == "France" | place_of_birth == "Germany" | place_of_birth == "Italy" | place_of_birth == "Other Eastern Europe" | place_of_birth == "Other Northern And Western Europe" | place_of_birth == "Other Southern Europe" | place_of_birth == "Poland" | place_of_birth == "Portugal" | place_of_birth == "United Kingdom" ~ "Europe",
+    place_of_birth == "Oceania And Others" ~ "Oceania",
+    place_of_birth == "South America" ~ "South America",
+    TRUE ~ NA_character_
+  ))
+
+# Check work
+head(immigrant)
+apply(immigrant, 2, table)
+```
+
+# Analysis
+
+```{r Find proportions}
+# Find distribution by province/territory
+dist_prov <- immigrant %>% 
+  group_by(place_of_residence) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(prop = n/sum(n)) %>% 
+  arrange(desc(prop))
+
+# Check work
+dist_prov
+
+# Find distribution for each continent (continent) by province/territory
+dist_pob <- immigrant %>% 
+  group_by(place_of_residence, continent_of_birth) %>% 
+  count() %>%
+  ungroup() %>% 
+  group_by(place_of_residence) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ungroup()  
+
+# Check work
+dist_pob
+```
+
+```{r Save datasets}
+write.csv(dist_prov, "dist_prov.csv")
+write.csv(dist_pob, "dist_pob.csv")
+```
