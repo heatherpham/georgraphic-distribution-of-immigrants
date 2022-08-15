@@ -16,7 +16,7 @@ I focused on the distribution of immigrants as I was inspired by a course projec
 
 ## How to use this repo
 
-The data, 2016 Canadian Census dataset, used in this project is a Public Use Microdata File (PUMF). This means it's an exception to the Statistics Canada Open Licence agreement and therefore, cannot be made available publicly. Unfortunately, this also means you won't be able to run my code without any errors. Nonetheless, I've included my code here for your viewing.
+The data, 2016 Canadian Census dataset, used in this project is a Public Use Microdata File (PUMF). This means it's an exception to the Statistics Canada Open Licence agreement and therefore, cannot be made available publicly. Unfortunately, this also means you won't be able to run my code without any errors. Nonetheless, I've included my code [here](https://github.com/heatherpham/georgraphic-distribution-of-immigrants/blob/main/georgraphic-distribution-of-immigrants.rmd) for your viewing.
 
 ## Get in touch
 
